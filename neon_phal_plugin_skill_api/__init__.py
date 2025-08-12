@@ -126,5 +126,6 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         if not self._available_apis:
             LOG.warning("No available APIs found, updating...")
             self.update_available_apis()
+        LOG.debug("Handling request for available APIs")
         self.bus.emit(message.response(data=self._available_apis))
 
