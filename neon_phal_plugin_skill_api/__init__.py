@@ -44,7 +44,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         self._register_listeners()
 
         # Check if skills service already started
-        skills_status = self.bus.wait_for_response("mycroft.skills.is_ready")
+        skills_status = self.bus.wait_for_response(Message("mycroft.skills.is_ready"))
         if skills_status and skills_status.data.get("status"):
             LOG.info("Skills service already started")
             self.update_available_apis()
