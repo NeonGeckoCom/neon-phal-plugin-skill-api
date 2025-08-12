@@ -45,7 +45,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
 
         # Check if skills service already started
         skills_status = self.bus.wait_for_response(Message("mycroft.skills.is_ready"))
-        if skills_status and skills_status.data.get("status"):
+        if isinstance(skills_status, Message) and skills_status.data.get("status"):
             LOG.info("Skills service already started")
             self.update_available_apis()
 
@@ -75,7 +75,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
             ),
             "mycroft.skills.list",
         )
-        if not response:
+        if not isinstance(response, Message):
             LOG.warning("No active skills reported")
             return []
         skill_ids = [
@@ -97,7 +97,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
                 context={"source": [self.name], "destination": ["skills"]},
             ),
         )
-        if not response:
+        if not isinstance(response, Message):
             LOG.warning(f"No API method response for skill {skill_id}")
             return {}
         return response.data
