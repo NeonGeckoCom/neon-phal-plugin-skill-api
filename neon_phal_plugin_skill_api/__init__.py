@@ -108,7 +108,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         Get an updated dictionary of available APIs for all active skills.
         """
         timeout = time() + 60
-        with self._update_lock.acquire():
+        with self._update_lock:
             active_skills = self._get_active_skills()
             while not active_skills and time() < timeout:
                 self._waiter.wait(5)
