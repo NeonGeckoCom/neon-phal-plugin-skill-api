@@ -26,11 +26,9 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from re import L
-from time import sleep
 import unittest
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 from ovos_bus_client import Message
 from neon_phal_plugin_skill_api import NeonPhalPluginSkillAPI
 
