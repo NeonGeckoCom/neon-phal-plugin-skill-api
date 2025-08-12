@@ -27,6 +27,7 @@
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from threading import Event, RLock
+from time import time
 from typing import Optional, List, Dict
 from ovos_utils.log import LOG
 from ovos_bus_client.message import Message
@@ -106,10 +107,12 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         """
         Get an updated dictionary of available APIs for all active skills.
         """
-        with self._update_lock:
+        timeout = time() + 60
+        with self._update_lock.acquire():
             active_skills = self._get_active_skills()
-            while not active_skills:
+            while not active_skills and time() < timeout:
                 self._waiter.wait(5)
+                active_skills = self._get_active_skills()
             for skill_id in active_skills:
                 methods = self._get_skill_api_methods(skill_id)
                 LOG.info(
