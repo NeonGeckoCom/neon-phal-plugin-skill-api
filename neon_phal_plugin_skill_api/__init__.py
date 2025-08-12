@@ -120,11 +120,11 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
 
     def get_available_apis(self, message: Message):
         """
-        Handle an request and reply with available APIs.
+        Handle an request and respond with available APIs.
         @param message: `neon.skill_api.get` Message
         """
         if not self._available_apis:
             LOG.warning("No available APIs found, updating...")
             self.update_available_apis()
-        self.bus.emit(message.reply(data=self._available_apis))
+        self.bus.emit(message.response(data=self._available_apis))
 
