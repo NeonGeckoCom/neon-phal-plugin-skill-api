@@ -164,6 +164,44 @@ class TestSkillApi(unittest.TestCase):
         self.plugin.update_available_apis()
         self.assertEqual(self.plugin._available_apis, test_apis)
 
-    def test_get_available_apis(self):
-        pass
-        # TODO
+    @patch.object(NeonPhalPluginSkillAPI, 'update_available_apis')
+    def test_get_available_apis(self, mock_update):
+        # Test when APIs are already available
+        test_apis = {
+            'skill-test1.neongeckocom': {
+                'skill_info_examples': {
+                    'help': 'API Method to build a list of examples',
+                    'type': 'skill-test1.neongeckocom.skill_info_examples'
+                }
+            }
+        }
+        self.plugin._available_apis = test_apis
+        
+        test_message = Message("neon.skill_api.get", context={"ctx": "test"})
+        self.plugin.get_available_apis(test_message)
+        
+        # Should not call update since APIs are already available
+        mock_update.assert_not_called()
+        
+        # Check that bus.emit was called with correct response
+        self.bus.emit.assert_called_once()
+        emitted_message = self.bus.emit.call_args[0][0]
+        self.assertEqual(emitted_message.msg_type, "neon.skill_api.get.response")
+        self.assertEqual(emitted_message.data, test_apis)
+        self.assertEqual(emitted_message.context, {"ctx": "test"})
+        
+        # Test when no APIs are available (should trigger update)
+        self.bus.reset_mock()
+        mock_update.reset_mock()
+        self.plugin._available_apis = {}
+        
+        self.plugin.get_available_apis(test_message)
+        
+        # Should call update since no APIs are available
+        mock_update.assert_called_once()
+        
+        # Should still emit response (with empty data)
+        self.bus.emit.assert_called_once()
+        emitted_message = self.bus.emit.call_args[0][0]
+        self.assertEqual(emitted_message.msg_type, "neon.skill_api.get.response")
+        self.assertEqual(emitted_message.data, {})
