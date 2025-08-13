@@ -54,7 +54,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         """
         Registers Messagebus listeners.
         """
-        self.bus.on("mycroft.skills.trained", self._on_ready)
+        self.bus.on("mycroft.ready", self._on_ready)
         self.bus.on("neon.skill_api.update", self.update_available_apis)
         self.bus.on("neon.skill_api.get", self.get_available_apis)
 
@@ -63,9 +63,10 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         Query available Skill APIs when core services are ready
         @param message: "mycroft.ready" Message
         """
+        self._waiter.wait(15)  # Pad to resolve race conditions
         self.update_available_apis()
 
-    def _get_active_skills(self) -> List[str]:
+    def _get_enabled_skills(self) -> List[str]:
         """
         Get a list of active skill IDs to query for available API methods.
         """
@@ -109,17 +110,17 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         """
         timeout = time() + 60
         with self._update_lock:
-            active_skills = self._get_active_skills()
-            while not active_skills and time() < timeout:
+            enabled_skills = self._get_enabled_skills()
+            while not enabled_skills and time() < timeout:
                 self._waiter.wait(5)
-                active_skills = self._get_active_skills()
-            for skill_id in active_skills:
+                enabled_skills = self._get_enabled_skills()
+            for skill_id in enabled_skills:
                 methods = self._get_skill_api_methods(skill_id)
                 LOG.info(
                     f"Found {len(methods)} API methods for skill {skill_id}"
                 )
                 self._available_apis[skill_id] = methods
-        LOG.info(f"Updated Skill APIs for {len(active_skills)} skills")
+        LOG.info(f"Updated Skill APIs for {len(enabled_skills)} skills")
 
     def get_available_apis(self, message: Message):
         """
