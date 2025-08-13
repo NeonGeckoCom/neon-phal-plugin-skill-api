@@ -54,7 +54,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         """
         Registers Messagebus listeners.
         """
-        self.bus.on("mycroft.ready", self._on_ready)
+        self.bus.on("mycroft.skills.trained", self._on_ready)
         self.bus.on("neon.skill_api.update", self.update_available_apis)
         self.bus.on("neon.skill_api.get", self.get_available_apis)
 
