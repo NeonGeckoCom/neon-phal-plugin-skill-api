@@ -91,6 +91,9 @@ class TestSkillApi(unittest.TestCase):
     def test_get_skill_api_methods(self):
         self.bus.reset_mock()
         skill_id = "test_skill.neongeckocom"
+        
+        # Test with no response
+        self.bus.wait_for_response.return_value = None
         methods = self.plugin._get_skill_api_methods(skill_id)
         self.bus.wait_for_response.assert_called_once_with(
             Message(
@@ -103,7 +106,24 @@ class TestSkillApi(unittest.TestCase):
         )
         self.assertEqual(methods, {})
 
-        # TODO: Test with simulated response
+        # Test with mock response data
+        self.bus.reset_mock()
+        mock_api_data = {
+            'skill_info_examples': {
+                'help': '\n        API Method to build a list of examples as listed in skill metadata.\n        ',
+                'type': 'test_skill.neongeckocom.skill_info_examples'
+            },
+            'get_skill_status': {
+                'help': 'Returns the current status of the skill',
+                'type': 'test_skill.neongeckocom.get_skill_status'
+            }
+        }
+        mock_response = Message(f"{skill_id}.public_api", data=mock_api_data)
+        self.bus.wait_for_response.return_value = mock_response
+        
+        methods = self.plugin._get_skill_api_methods(skill_id)
+        expected_methods = mock_api_data
+        self.assertEqual(methods, expected_methods)
 
     def test_update_available_apis(self):
         pass
