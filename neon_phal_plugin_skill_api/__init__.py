@@ -39,6 +39,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         self, bus=None, name="neon-phal-plugin-skill-api", config=None
     ):
         PHALPlugin.__init__(self, bus, name, config)
+        self.refresh_timeout_seconds = 60
         self._available_apis: Dict[str, dict] = dict()
         self._waiter = Event()
         self._update_lock = RLock()
@@ -108,7 +109,7 @@ class NeonPhalPluginSkillAPI(PHALPlugin):
         """
         Get an updated dictionary of available APIs for all active skills.
         """
-        timeout = time() + 60
+        timeout = time() + self.refresh_timeout_seconds
         with self._update_lock:
             enabled_skills = self._get_enabled_skills()
             while not enabled_skills and time() < timeout:

@@ -28,7 +28,7 @@
 
 import unittest
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from ovos_bus_client import Message
 from neon_phal_plugin_skill_api import NeonPhalPluginSkillAPI
 
@@ -125,9 +125,44 @@ class TestSkillApi(unittest.TestCase):
         expected_methods = mock_api_data
         self.assertEqual(methods, expected_methods)
 
-    def test_update_available_apis(self):
-        pass
-        # TODO
+    @patch.object(NeonPhalPluginSkillAPI, '_get_skill_api_methods')
+    @patch.object(NeonPhalPluginSkillAPI, '_get_enabled_skills')
+    def test_update_available_apis(self, mock_get_skills, mock_get_api_methods):
+        self.plugin.refresh_timeout_seconds = 0
+        # Test with no enabled skills
+        mock_get_skills.return_value = []
+        self.plugin.update_available_apis()
+        self.assertEqual(self.plugin._available_apis, {})
+        
+        # Test with enabled skills and API methods
+        test_skills = ['skill-test1.neongeckocom', 'skill-test2.neongeckocom']
+        test_apis = {
+            'skill-test1.neongeckocom': {
+                'skill_info_examples': {
+                    'help': 'API Method to build a list of examples',
+                    'type': 'skill-test1.neongeckocom.skill_info_examples'
+                }
+            },
+            'skill-test2.neongeckocom': {
+                'get_status': {
+                    'help': 'Returns skill status',
+                    'type': 'skill-test2.neongeckocom.get_status'
+                },
+                'restart': {
+                    'help': 'Restarts the skill',
+                    'type': 'skill-test2.neongeckocom.restart'
+                }
+            }
+        }
+        
+        def mock_get_api_methods_side_effect(skill_id):
+            return test_apis.get(skill_id, {})
+        
+        mock_get_skills.return_value = test_skills
+        mock_get_api_methods.side_effect = mock_get_api_methods_side_effect
+        
+        self.plugin.update_available_apis()
+        self.assertEqual(self.plugin._available_apis, test_apis)
 
     def test_get_available_apis(self):
         pass
