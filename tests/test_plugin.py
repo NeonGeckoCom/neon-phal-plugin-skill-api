@@ -58,7 +58,10 @@ class TestSkillApi(unittest.TestCase):
 
     def test_get_active_skills(self):
         self.bus.reset_mock()
-        skills = self.plugin._get_active_skills()
+        
+        # Test with no response
+        self.bus.wait_for_response.return_value = None
+        skills = self.plugin._get_enabled_skills()
         self.bus.wait_for_response.assert_called_once_with(
             Message(
                 "skillmanager.list",
@@ -71,7 +74,19 @@ class TestSkillApi(unittest.TestCase):
         )
         self.assertEqual(skills, [])
 
-        # TODO: Test with simulated response
+        # Test with mock response data
+        self.bus.reset_mock()
+        mock_response_data = {
+            'skill-test1.neongeckocom': {'active': True, 'id': 'skill-test1.neongeckocom'},
+            'skill-test2.neongeckocom': {'active': False, 'id': 'skill-test2.neongeckocom'},
+            'skill-test3.neongeckocom': {'active': True, 'id': 'skill-test3.neongeckocom'}
+        }
+        mock_response = Message("mycroft.skills.list", data=mock_response_data)
+        self.bus.wait_for_response.return_value = mock_response
+        
+        skills = self.plugin._get_enabled_skills()
+        expected_skills = ['skill-test1.neongeckocom', 'skill-test3.neongeckocom']
+        self.assertEqual(sorted(skills), sorted(expected_skills))
 
     def test_get_skill_api_methods(self):
         self.bus.reset_mock()
